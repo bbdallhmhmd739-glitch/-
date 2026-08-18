@@ -28,8 +28,8 @@ for message in st.session_state.messages:
 
 st.subheader("📎 رفع ملف للتحليل")
 uploaded_file = st.file_uploader("اختر ملفاً (PDF, Word):", type=["pdf", "docx"])
-
 file_context = ""
+
 if uploaded_file is not None:
     file_type = uploaded_file.name.split('.')[-1].lower()
     if file_type == "pdf":
@@ -49,9 +49,9 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
-
+            
         genai.configure(api_key=api_key)
-model = genai.GenerativeModel('gemini-1.5-flash-latest')
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
         full_prompt = f"المستند:\n{file_context[:4000]}\n\nالسؤال: {prompt}" if file_context else prompt
 
         with st.chat_message("assistant"):
