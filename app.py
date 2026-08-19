@@ -1,74 +1,48 @@
 import streamlit as st
-import google.generativeai as genai
-from pypdf import PdfReader
-import docx
 
-st.set_page_config(page_title="المساعد الذكي الشامل", page_icon="🤖", layout="wide")
+st.set_page_config(page_title="لعبة المحقق", page_icon="🕵️", layout="centered")
 
 st.markdown("""
 <style>
-body, div, p, input, textarea, button { direction: RTL; text-align: right; }
-.stChatMessage { direction: RTL; text-align: right; }
+body { direction: RTL; text-align: right; }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🤖 تطبيق المساعد الذكي الشامل")
+st.title("🕵️ لعبة المحقق: جريمة في القطار")
 
-with st.sidebar:
-    st.header("⚙️ الإعدادات والحساب")
-    user_plan = st.selectbox("باقة الاشتراك الحالية:", ["النسخة المجانية (Free)", "النسخة الاحترافية (Pro) 💎"])
-    api_key = st.text_input("أدخل مفتاح Gemini API الخاص بك:", type="password")
+if "stage" not in st.session_state:
+    st.session_state.stage = "intro"
+
+if st.session_state.stage == "intro":
+    st.write("أهلاً بك يا محقق! لقد تم العثور على جثة في القطار السريع.")
+    st.write("أنت المحقق الوحيد القادر على حل هذا اللغز قبل وصول القطار للمحطة الأخيرة.")
+    if st.button("ابدأ التحقيق"):
+        st.session_state.stage = "scene_1"
+        st.rerun()
+
+elif st.session_state.stage == "scene_1":
+    st.write("أنت الآن في عربة الركاب. هناك ثلاثة مشتبه بهم.")
+    st.write("1. الرجل العجوز الذي يدعي أنه كان نائماً.")
+    st.write("2. السيدة الأنيقة التي كانت تتشاجر مع الضحية.")
+    st.write("3. الشاب المرتبك الذي يحمل حقيبة مشبوهة.")
     
-    st.subheader("📎 رفع ملف للتحليل")
-    uploaded_file = st.file_uploader("اختر ملفاً (PDF, Word):", type=["pdf", "docx"])
+    choice = st.radio("من ستستجوب أولاً؟", ["الرجل العجوز", "السيدة الأنيقة", "الشاب المرتبك"])
+    
+    if st.button("استجواب"):
+        st.session_state.stage = "interrogation_result"
+        st.session_state.choice = choice
+        st.rerun()
 
-file_context = ""
-if uploaded_file is not None:
-    file_type = uploaded_file.name.split('.')[-1].lower()
-    if file_type == "pdf":
-        reader = PdfReader(uploaded_file)
-        for page in reader.pages:
-            file_context += page.extract_text() or ""
-        st.success("✅ تم قراءة ملف PDF بنجاح!")
-    elif file_type == "docx":
-        doc = docx.Document(uploaded_file)
-        file_context = "\n".join([para.text for para in doc.paragraphs])
-        st.success("✅ تم قراءة ملف Word بنجاح!")
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-if prompt := st.chat_input("اكتب سؤالك هنا..."):
-    if not api_key:
-        st.error("❌ يرجى إدخال مفتاح Gemini API أولاً.")
+elif st.session_state.stage == "interrogation_result":
+    st.write(f"لقد اخترت استجواب: {st.session_state.choice}")
+    if st.session_state.choice == "السيدة الأنيقة":
+        st.write("لقد اعترفت بوجود خلاف مالي كبير بينها وبين الضحية!")
+        st.write("وجدت دليلاً مهماً معها.")
+        st.success("أحسنت! لقد أمسكت بالخيط الأول.")
     else:
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        genai.configure(api_key=api_key)
-    # النموذج الصحيح المعتمد مجاناً
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        
-        
-        full_prompt = f"المستند:\n{file_context[:4000]}\n\nالسؤال: {prompt}" if file_context else prompt
-
-        with st.chat_message("assistant"):
-            with st.spinner("جاري التفكير..."):
-                try:
-                    response = model.generate_content(full_prompt)
-                    st.markdown(response.text)
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
-                except Exception as e:
-                    # في حالة وجود مشكلة بآلية جلب النموذج يتم التحويل تلقائياً للنموذج الاحتياطي
-                    try:
-                        fallback_model = genai.GenerativeModel('gemini-1.5-pro')
-                        response = fallback_model.generate_content(full_prompt)
-                        st.markdown(response.text)
-                        st.session_state.messages.append({"role": "assistant", "content": response.text})
-                    except Exception as err:
-                        st.error(f"خطأ: {err}")
+        st.write("يبدو أن هذا الشخص بريء، لم تجد دليلاً يدينه.")
+        st.warning("جرب شخصاً آخر.")
+    
+    if st.button("العودة للمشتبه بهم"):
+        st.session_state.stage = "scene_1"
+        st.rerun()
