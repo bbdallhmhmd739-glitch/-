@@ -8,13 +8,20 @@ st.set_page_config(
     layout="centered"
 )
 
-# التهيئة الأوليّة لمستوى اللعبة
-if 'level' not in st.session_state:
-    st.session_state.level = 1
+# جلب المستوى الحالي من رابط الصفحة أو البدء من الدور 1
+query_params = st.query_params
+if "level" in query_params:
+    try:
+        current_level = int(query_params["level"])
+    except ValueError:
+        current_level = 1
+else:
+    current_level = 1
 
+st.session_state.level = current_level
 level = st.session_state.level
 
-# حساب الصعوبة بناءً على المستوى
+# حساب الصعوبة وعدد المشتبه بهم بناءً على رقم الدور
 if level <= 500:
     difficulty = "سهل"
     num_suspects = 3
@@ -28,7 +35,7 @@ else:
     num_suspects = 7
     time_estimate = "7+ دقائق"
 
-# عنوان التطبيق والمعلومات
+# واجهة اللعبة
 st.title("🕵️‍♂️ لعبة المحقق: قضية الفندق الغامض")
 st.subheader(f"📌 الدور {level}: قضية الغرفة المغلقة")
 
@@ -39,7 +46,7 @@ col3.metric("الوقت المتوقع", time_estimate)
 
 st.divider()
 
-# مولد القضايا الأوتوماتيكي (معادلة ثابتة برقم المستوى)
+# توليد تفاصيل القضية بناءً على رقم الدور الحالي
 random.seed(level)
 
 characters = ["السيد أحمد (المدير)", "الآنسة سارة (الموظفة)", "السيد خالد (النزيل)", 
@@ -57,16 +64,15 @@ st.write(f"🧩 **الدليل الرئيسي:** تم العثور على **{clu
 
 st.markdown("### 👥 قائمة المشتبه بهم والأقوال:")
 
-# توليد أقوال المشتبه بهم
 for suspect in suspects_list:
     if suspect == culprit:
         st.write(f"- **{suspect}**: \"كنت متواجداً في المكان ولكن لم ألمس شيئاً!\" *(شهادة مرتبكة)*")
     else:
-        st.write(f"- **{suspect}**: \"لدي حجة غياب قوية، كنت في مكان آخر تماماً.\"" )
+        st.write(f"- **{suspect}**: \"لدي حجة غياب قوية، كنت في مكان آخر تماماً.\"")
 
 st.divider()
 
-# منطقة الاتهام والتفاعل
+# الاتهام والتأكد من الإجابة
 selected_suspect = st.radio("من هو المتهم الحقيقي بناءً على الأدلة والتحقيق؟", suspects_list)
 
 if st.button("تأكيد الاتهام وإصدار الحكم 🔍"):
@@ -74,9 +80,9 @@ if st.button("تأكيد الاتهام وإصدار الحكم 🔍"):
         st.balloons()
         st.success(f"🎉 أحسنت يا سيادة المحقق! نجحت في كشف القاتل ({culprit}) وتفكيك اللغز.")
         
-        if st.button("الانتقال إلى الدور التالي ➡️"):
-            st.session_state.level += 1
-            st.rerun()
+        # التحديث للدور التالي في الرابط ثم إعادة التحميل
+        st.query_params["level"] = str(level + 1)
+        st.button("الانتقال إلى الدور التالي ➡️")
     else:
-        st.error(f"❌ اتهام خاطئ! الشخص المتهَم ليس هو الفاعل، حاول التركيز أكثر في الشهادات.")
+        st.error("❌ اتهام خاطئ! الشخص المتهَم ليس هو الفاعل، حاول التركيز أكثر في الشهادات.")
         st.info("💡 تلميح: راقب الأقوال المرتبكة جيداً.")
