@@ -51,7 +51,9 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
             st.markdown(prompt)
 
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        # اختيار النموذج المتوافق مع المفتاح المجاني
+        model = genai.GenerativeModel('gemini-1.5-flash-8b')
         
         full_prompt = f"المستند:\n{file_context[:4000]}\n\nالسؤال: {prompt}" if file_context else prompt
 
@@ -62,4 +64,11 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
                     st.markdown(response.text)
                     st.session_state.messages.append({"role": "assistant", "content": response.text})
                 except Exception as e:
-                    st.error(f"خطأ: {e}")
+                    # في حالة وجود مشكلة بآلية جلب النموذج يتم التحويل تلقائياً للنموذج الاحتياطي
+                    try:
+                        fallback_model = genai.GenerativeModel('gemini-1.5-pro')
+                        response = fallback_model.generate_content(full_prompt)
+                        st.markdown(response.text)
+                        st.session_state.messages.append({"role": "assistant", "content": response.text})
+                    except Exception as err:
+                        st.error(f"خطأ: {err}")
