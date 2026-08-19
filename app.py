@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="لعبة المحقق - القضية الكبرى", page_icon="🕵️‍♂️", layout="centered")
+st.set_page_config(page_title="لعبة المحقق - القضايا المتعددة", page_icon="🕵️‍♂️", layout="centered")
 
 st.markdown("""
 <style>
@@ -8,80 +8,98 @@ body { direction: RTL; text-align: right; }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🕵️‍♂️ لعبة المحقق: شبكة الأسرار")
+st.title("🕵️‍♂️ لعبة المحقق: قضية الفندق الغامض")
 
 if "stage" not in st.session_state:
     st.session_state.stage = "intro"
 if "clues" not in st.session_state:
     st.session_state.clues = []
+if "score" not in st.session_state:
+    st.session_state.score = 0
 
-# البداية
+# --- الدور الأول: المقدمة ---
 if st.session_state.stage == "intro":
-    st.subheader("المرحلة 0: البداية")
-    st.write("تم استدعاؤك للتحقيق في مسرح جريمة غامض داخل الفندق الكبير. الضحية رجل أعمال معروف.")
-    st.write("هدف الرحلة: تجميع الأدلة، استجواب المشتبه بهم، وكشف الجاني الحقيقي!")
-    if st.button("بدء التحقيق 🔍"):
-        st.session_state.stage = "search_scene"
+    st.subheader("📌 الدور 1: استلام المهمة")
+    st.write("أهلاً بك يا سيادة المحقق! تم استدعاؤك لحل جريمة غامضة في الفندق الكلاسيكي.")
+    st.write("أمامك عدة أدوار ومهمات يجب إنجازها خطوة بخطوة للوصول للحقيقة.")
+    if st.button("بدء المهمة الأولى 🔍"):
+        st.session_state.stage = "task1_search"
         st.rerun()
 
-# المرحلة الأولى: تفتيش مسرح الجريمة
-elif st.session_state.stage == "search_scene":
-    st.subheader("المرحلة 1: تفتيش الغرفة")
-    st.write("أنت الآن داخل غرفة الضحية. أين تريد أن تبحث عن الأدلة أولاً؟")
+# --- الدور الثاني: مهمة البحث عن الأدلة ---
+elif st.session_state.stage == "task1_search":
+    st.subheader("🔍 الدور 2: مهمة البحث والتفتيش")
+    st.write("أنت الآن في مسرح الجريمة. اختر الأماكن التي تريد تفقدها لإيجاد أدلة:")
     
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("تفتيش المكتب 📑"):
-            if "رسالة تهديد" not in st.session_state.clues:
-                st.session_state.clues.append("رسالة تهديد")
-                st.success("عثرت على: رسالة تهديد غامضة في الدرج!")
+        if st.button("تفتيش دراج المكتب 🗄️"):
+            if "رسالة مشفرة" not in st.session_state.clues:
+                st.session_state.clues.append("رسالة مشفرة")
+                st.session_state.score += 10
+                st.success("عثرت على ورقة بها رسالة مشفرة! (+10 نقاط)")
     with col2:
-        if st.button("تفتيش الخزنة 🗝️"):
-            if "مفتاح خاص" not in st.session_state.clues:
-                st.session_state.clues.append("مفتاح خاص")
-                st.success("عثرت على: مفتاح صغير مصمم بشكل غريب!")
+        if st.button("تفتيش السجادة 🧹"):
+            if "بصمة غريبة" not in st.session_state.clues:
+                st.session_state.clues.append("بصمة غريبة")
+                st.session_state.score += 10
+                st.success("عثرت على بصمة حذاء غامضة! (+10 نقاط)")
 
-    st.write("---")
-    st.write(f"الأدلة المجمعة حتى الآن: {', '.join(st.session_state.clues) if st.session_state.clues else 'لا يوجد أدلة بعد'}")
+    st.info(f"الأدلة بحوزتك: {', '.join(st.session_state.clues) if st.session_state.clues else 'لا يوجد بعد'}")
     
-    if len(st.session_state.clues) >= 1:
-        if st.button("الانتقال لاستجواب المشتبه بهم ➡️"):
-            st.session_state.stage = "interrogate"
+    if len(st.session_state.clues) >= 2:
+        if st.button("الانتقال للدور التالي (فك الشفرة) ➡️"):
+            st.session_state.stage = "task2_puzzle"
             st.rerun()
 
-# المرحلة الثانية: الاستجواب
-elif st.session_state.stage == "interrogate":
-    st.subheader("المرحلة 2: غرف الاستجواب")
-    st.write("لديك مشتبه بهما رئيسيان. من تريد أن تستجوب؟")
+# --- الدور الثالث: مهمة حل اللغز ---
+elif st.session_state.stage == "task2_puzzle":
+    st.subheader("🧩 الدور 3: مهمة فك الشفرة")
+    st.write("للإنتقال للمرحلة القادمة، عليك حل الشفرة المكتوبة في الرسالة:")
+    st.write("L-U-G-Z -> ما هي الكلمة الصحيحة باللغة العربية؟")
     
-    suspect = st.radio("اختر المشتبه به:", ["مساعد الضحية (سارة)", "حارس الفندق (أحمد)"])
-    
-    if suspect == "مساعد الضحية (سارة)":
-        st.write("سارة: 'أنا كنت في المكتبة وقت الحادثة، ولم ألمس أي شيء!'")
-        if "رسالة تهديد" in st.session_state.clues:
-            st.info("💡 يمكنك مواجهتها برسالة التهديد!")
-    else:
-        st.write("أحمد: 'أنا رأيت شخصاً يرتدي معطفاً أسود يركض في الممر.'")
-        if "مفتاح خاص" in st.session_state.clues:
-            st.info("💡 هذا المفتاح يطابق خزانة الحراس!")
+    answer = st.text_input("اكتب إجابتك هنا:")
+    if st.button("تأكيد الحل 💡"):
+        if answer.strip() in ["لغز", "اللغز"]:
+            st.success("إجابة صحيحة! تم فك الخزنة بنجاح. (+20 نقطة)")
+            st.session_state.score += 20
+            st.session_state.stage = "task3_interrogate"
+            st.rerun()
+        else:
+            st.error("إجابة خاطئة، حاول مرة أخرى!")
 
-    if st.button("توجيه الاتهام النهائي ⚖️"):
-        st.session_state.stage = "accuse"
+# --- الدور الرابع: مهمة الاستجواب ---
+elif st.session_state.stage == "task3_interrogate":
+    st.subheader("🗣️ الدور 4: مهمة استجواب المشتبه بهم")
+    st.write("لديك شخصان مشتبه بهما، استجوبهما بدقة:")
+    
+    suspect = st.selectbox("اختر من تريد استجوابه:", ["المدير (سامي)", "الموظفة (نور)"])
+    
+    if suspect == "المدير (سامي)":
+        st.write("سامي: 'أنا كنت في مكتبي، لكن البصمة على السجادة قد تكون لأحد العمال.'")
+    else:
+        st.write("نور: 'أنا رأيت سامي يحمل الرسالة المشفرة قبل الجريمة بـ 10 دقائق!'")
+
+    if st.button("الذهاب للدور النهائي (إصدار الحكم) ⚖️"):
+        st.session_state.stage = "final_accuse"
         st.rerun()
 
-# المرحلة الثالثة: الاتهام والنتيجة
-elif st.session_state.stage == "accuse":
-    st.subheader("المرحلة الأخيرة: كشف الحقيقة")
-    final_choice = st.selectbox("من هو القاتل بناءً على الأدلة؟", ["مساعد الضحية (سارة)", "حارس الفندق (أحمد)"])
+# --- الدور الخامس: الاتهام والنهاية ---
+elif st.session_state.stage == "final_accuse":
+    st.subheader("⚖️ الدور 5: القرار النهائي")
+    st.write(f"مجموع نقاطك الكلي: {st.session_state.score}")
     
-    if st.button("تأكيد القرار 🎯"):
-        if final_choice == "مساعد الضحية (سارة)" and "رسالة تهديد" in st.session_state.clues:
+    final_choice = st.radio("من هو القاتل الحقيقي بناءً على الأدلة والشهادات؟", ["المدير (سامي)", "الموظفة (نور)"])
+    
+    if st.button("تأكيد الاتهام 🎯"):
+        if final_choice == "المدير (سامي)":
             st.balloons()
-            st.success("🎉 أحسنت يا محقق! سارة هي الجانية بالفعل، ورسالة التهديد كانت الخيط الكاشف!")
+            st.success("🎉 ممتاز جداً! نجحت في حل الجريمة وألقت الشرطة القبض على المدير!")
         else:
-            st.error("❌ للأسف، التقدير لم يكن صحيحاً أو الأدلة غير كافية. اعد المحاولة!")
+            st.error("❌ للأسف، الاتهام كان خاطئاً والقاتل الحقيقي هرب!")
             
-        if st.button("إعادة اللعبة 🔄"):
+        if st.button("لعب لعبة جديدة 🔄"):
             st.session_state.stage = "intro"
             st.session_state.clues = []
+            st.session_state.score = 0
             st.rerun()
