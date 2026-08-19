@@ -53,7 +53,7 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
         genai.configure(api_key=api_key)
         
         # اختيار النموذج المتوافق مع المفتاح المجاني
-        model = genai.GenerativeModel('gemini-1.5-flash-8b')
+        model = genai.GenerativeModel('gemini-1.5-flash)
         
         full_prompt = f"المستند:\n{file_context[:4000]}\n\nالسؤال: {prompt}" if file_context else prompt
 
