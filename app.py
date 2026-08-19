@@ -51,7 +51,7 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
             st.markdown(prompt)
 
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         full_prompt = f"المستند:\n{file_context[:4000]}\n\nالسؤال: {prompt}" if file_context else prompt
 
