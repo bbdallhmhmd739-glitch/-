@@ -1,36 +1,82 @@
-ضimport streamlit as st
+import streamlit as st
 import random
 
-# حفظ التقدم في الجلسة
+# ضبط إعدادات الصفحة
+st.set_page_config(
+    page_title="لعبة المحقق: القضايا اللانهائية",
+    page_icon="🕵️‍♂️",
+    layout="centered"
+)
+
+# التهيئة الأوليّة لمستوى اللعبة
 if 'level' not in st.session_state:
     st.session_state.level = 1
 
 level = st.session_state.level
 
-# حساب الصعوبة بناءً على رقم الدور
-num_suspects = min(3 + (level // 500), 8) # يزداد عدد المشتبه بهم كلما ارتفع المستوى
-time_estimate = "3-5 دقائق" if level < 500 else "5-7 دقائق"
+# حساب الصعوبة بناءً على المستوى
+if level <= 500:
+    difficulty = "سهل"
+    num_suspects = 3
+    time_estimate = "3 - 5 دقائق"
+elif level <= 3000:
+    difficulty = "متوسط"
+    num_suspects = 5
+    time_estimate = "5 - 7 دقائق"
+else:
+    difficulty = "صعب جداً"
+    num_suspects = 7
+    time_estimate = "7+ دقائق"
 
-st.title(f"🕵️‍♂️ لعبة المحقق - الدور {level}")
-st.caption(f"مستوى الصعوبة: {'سهل' if level < 500 else 'متوسط/صعب'} | الوقت المتوقع: {time_estimate}")
+# عنوان التطبيق والمعلومات
+st.title("🕵️‍♂️ لعبة المحقق: قضية الفندق الغامض")
+st.subheader(f"📌 الدور {level}: قضية الغرفة المغلقة")
 
-# مولد القضية الأوتوماتيكي بناءً على رقم الدور
-random.seed(level) # يضمن أن الدور له نفس المعطيات دائماً
+col1, col2, col3 = st.columns(3)
+col1.metric("المستوى", level)
+col2.metric("الصعوبة", difficulty)
+col3.metric("الوقت المتوقع", time_estimate)
 
-suspects = [f"شخصية {i+1}" for i in range(num_suspects)]
-culprit = random.choice(suspects)
+st.divider()
 
-st.write(f"📌 **تفاصيل القضية:** وقعت جريمة غامضة وهناك {num_suspects} مشتبه بهم.")
-st.write("استمع لأقوال المشتبه بهم واكتشف الجاني:")
+# مولد القضايا الأوتوماتيكي (معادلة ثابتة برقم المستوى)
+random.seed(level)
 
-selected = st.radio("من هو القاتل حسب الأدلة؟", suspects)
+characters = ["السيد أحمد (المدير)", "الآنسة سارة (الموظفة)", "السيد خالد (النزيل)", 
+              "المهندس كريم", "الطاهي محمود", "الدكتور سامي", "السيدة فاطمة"]
+items = ["ساعة يد مكسورة", "مفتاح ذهبي", "بصمة غريبة على الباب", "رسالة تهديد مشفرة", "خصلة شعر"]
+locations = ["الغرفة 101", "المطعم الرئيسي", "حديقة الفندق", "المكتبة", "الممر الخلفي"]
 
-if st.button("تأكيد الاتهام 🔍"):
-    if selected == culprit:
-        st.success("🎉 إجابة صحيحة! تم القبض على الجاني وإحالتة للقاضي.")
-        if st.button("Transition to Level Next ➡️"):
+suspects_list = random.sample(characters, num_suspects)
+culprit = random.choice(suspects_list)
+clue = random.choice(items)
+crime_scene = random.choice(locations)
+
+st.write(f"🔍 **تفاصيل البلاغ:** وقعت حادثة غامضة في **{crime_scene}**.")
+st.write(f"🧩 **الدليل الرئيسي:** تم العثور على **{clue}** قرب موقع الجريمة.")
+
+st.markdown("### 👥 قائمة المشتبه بهم والأقوال:")
+
+# توليد أقوال المشتبه بهم
+for suspect in suspects_list:
+    if suspect == culprit:
+        st.write(f"- **{suspect}**: \"كنت متواجداً في المكان ولكن لم ألمس شيئاً!\" *(شهادة مرتبكة)*")
+    else:
+        st.write(f"- **{suspect}**: \"لدي حجة غياب قوية، كنت في مكان آخر تماماً.\"" )
+
+st.divider()
+
+# منطقة الاتهام والتفاعل
+selected_suspect = st.radio("من هو المتهم الحقيقي بناءً على الأدلة والتحقيق؟", suspects_list)
+
+if st.button("تأكيد الاتهام وإصدار الحكم 🔍"):
+    if selected_suspect == culprit:
+        st.balloons()
+        st.success(f"🎉 أحسنت يا سيادة المحقق! نجحت في كشف القاتل ({culprit}) وتفكيك اللغز.")
+        
+        if st.button("الانتقال إلى الدور التالي ➡️"):
             st.session_state.level += 1
             st.rerun()
     else:
-        st.error("❌ اتهام خاطئ! القاتل الحقيقي لا يزال طليقاً.")
-        # هنا يمكن إضافة زر مشاهدة إعلان للحصول على تلميح
+        st.error(f"❌ اتهام خاطئ! الشخص المتهَم ليس هو الفاعل، حاول التركيز أكثر في الشهادات.")
+        st.info("💡 تلميح: راقب الأقوال المرتبكة جيداً.")
